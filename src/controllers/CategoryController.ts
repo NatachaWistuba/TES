@@ -15,7 +15,6 @@ class CategoryController {
             transactionLimit: request.body.transactionLimit,
             transactionTax: request.body.transactionTax
           });
-    
           response.status(200).json(newCategory.save());
         } catch (err) {
           console.log(err);

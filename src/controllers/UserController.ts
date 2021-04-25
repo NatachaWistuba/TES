@@ -51,6 +51,20 @@ class UserController {
     }
   }
 
+  async deleteUser(request: Request, response: Response) {
+    const cpf = request.body.cpf;
+    const filter = { cpf: cpf };
+    const user = await User.findOneAndDelete(filter);
+
+    if (user == null) {
+      response
+        .status(400)
+        .json("Não existe nenhum usuário com esse CPF para ser deletado");
+    } else {
+      response.status(200).json("Usuário deletado com sucesso!");
+    }
+  }
+
   async deposit(request: Request, response: Response) {
     try {
       const cpf = request.body.cpf;
@@ -78,17 +92,41 @@ class UserController {
     }
   }
 
-  async deleteUser(request: Request, response: Response) {
-    const cpf = request.body.cpf;
-    const filter = { cpf: cpf };
-    const user = await User.findOneAndDelete(filter);
+  async saque(request:Request, response: Response) {
+    try {
+      const cpf = request.body.cpf;
+      const valorDeSaque = request.body.currency;
+      const filter = {cpf: cpf}
+      const user = await User.findOne(filter);
+      const saldoUsuario = user.currency;
 
-    if (user == null) {
-      response
+      const saldoExtraido = saldoUsuario - valorDeSaque;
+
+      if(valorDeSaque <= 0){
+        response
+          .status(400)
+          .json("Não é possível sacar um valor negativo!");
+      } else if (saldoExtraido < 0) {
+        response
         .status(400)
-        .json("Não existe nenhum usuário com esse CPF para ser deletado");
-    } else {
-      response.status(200).json("Usuário deletado com sucesso!");
+        .json("Saldo insuficiente em conta para reailzar o saque!");
+      } else{
+        const filter = {cpf: cpf};
+        const update = {currency: saldoExtraido};
+        const user = await User.findOneAndUpdate(filter, update);
+        
+        if (user == null) {
+          response
+            .status(400)
+            .json("Não existe nenhum usuário cadastrado no sistema");
+        } else {
+          response.status(200).json("Saque realizado com sucesso");
+        }
+
+      }
+
+    } catch(err) {
+      console.log(err);
     }
   }
 
