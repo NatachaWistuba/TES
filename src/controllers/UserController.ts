@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/user";
 import Category from "../models/category";
+import user from "../models/user";
 
 class UserController {
   async find(request: Request, response: Response) {
@@ -37,20 +38,35 @@ class UserController {
         response.status(200).json(newUser.save());
       }
 
-      console.log(categories);
-      // response.status(200).json("teste"); ta ae ? 
     } catch (err) {
       console.log(err);
     }
   }
 
-  // async transfer(request: Request, response: Response) {
-  //   try {
+  async deposit(request: Request, response: Response) {
+    try {
+      const cpf = request.body.cpf;
+      const depositValue = request.body.currency;
+      
+      if(depositValue <= 0) {
+        response.status(400).json("Não é possível depositar um valor negativo!");
+      } else {
+        const filter = { cpf: cpf };
+        const update = { currency: depositValue };
+        const user = await User.findOneAndUpdate(filter, update);
+        
+        if(user == null){
+          response.status(400).json("Não existe nenhum usuário cadastrado no sistema");
+        } else {
+          
+          response.status(200).json("Depósito realizado com sucesso");
+        }
+      }
 
-  //   } catch () {
-
-  //   }
-  // }
+    } catch (err) {
+      console.log(err);
+    }
+  }
 }
 
 export default UserController;

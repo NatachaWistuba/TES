@@ -8,6 +8,7 @@ const categoryController = new CategoryController();
 
 router.get("/users/find", userController.find);
 router.post("/users/add", userController.add);
+router.post("/users/deposit", userController.deposit);
 router.get("/category/find", categoryController.find);
 router.post("/category/add", categoryController.add);
 
