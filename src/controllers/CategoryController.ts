@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import Category from "../models/category";
+import { Request, Response } from 'express';
+import Category from '../models/category';
 
 class CategoryController {
     async find(request: Request, response: Response) {
@@ -20,8 +20,6 @@ class CategoryController {
           console.log(err);
         }
       }
-
-
 }
 
 export default CategoryController;
