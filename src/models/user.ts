@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from 'mongoose';
 
 const UserSchema = new Schema({
   name: { type: String, required: true },
@@ -6,7 +6,7 @@ const UserSchema = new Schema({
   age: { type: Number, required: true },
   income: { type: Number, required: true },
   currency: { type: Number, required: true },
-  categoryId: {type: String}
+  categoryId: { type: String },
 });
 
-export default mongoose.model("User", UserSchema);
+export default mongoose.model('User', UserSchema);

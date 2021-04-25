@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import User from "../models/user";
-import Category from "../models/category";
-import user from "../models/user";
+import { Request, Response } from 'express';
+import User from '../models/user';
+import Category from '../models/category';
+import user from '../models/user';
 
 class UserController {
   async find(request: Request, response: Response) {
@@ -36,7 +36,7 @@ class UserController {
         if (idCategory == 0) {
           response
             .status(400)
-            .json("Não existe nenhuma categoria para este usuário");
+            .json('Não existe nenhuma categoria para este usuário');
         } else {
           newUser.categoryId = idCategory;
           response.status(200).json(newUser.save());
@@ -44,7 +44,7 @@ class UserController {
       } else {
         response
           .status(400)
-          .json("Já existe um usuário cadastrado com esse CPF!");
+          .json('Já existe um usuário cadastrado com esse CPF!');
       }
     } catch (err) {
       console.log(err);
@@ -59,7 +59,7 @@ class UserController {
       if (depositValue <= 0) {
         response
           .status(400)
-          .json("Não é possível depositar um valor negativo!");
+          .json('Não é possível depositar um valor negativo!');
       } else {
         const filter = { cpf: cpf };
         const update = { currency: depositValue };
@@ -68,9 +68,9 @@ class UserController {
         if (user == null) {
           response
             .status(400)
-            .json("Não existe nenhum usuário cadastrado no sistema");
+            .json('Não existe nenhum usuário cadastrado no sistema');
         } else {
-          response.status(200).json("Depósito realizado com sucesso");
+          response.status(200).json('Depósito realizado com sucesso');
         }
       }
     } catch (err) {
@@ -86,9 +86,9 @@ class UserController {
     if (user == null) {
       response
         .status(400)
-        .json("Não existe nenhum usuário com esse CPF para ser deletado");
+        .json('Não existe nenhum usuário com esse CPF para ser deletado');
     } else {
-      response.status(200).json("Usuário deletado com sucesso!");
+      response.status(200).json('Usuário deletado com sucesso!');
     }
   }
 
@@ -100,7 +100,7 @@ class UserController {
     if (valorTransferido <= 0) {
       response
         .status(400)
-        .json("O valor  de transferência precisa ser maior do que R$0.00!");
+        .json('O valor  de transferência precisa ser maior do que R$0.00!');
     } else {
       const filterCpfOrigem = { cpf: cpfOrigem };
       const filterCpfDestino = { cpf: cpfDestino };
@@ -108,16 +108,19 @@ class UserController {
       const userDestino = await User.findOne(filterCpfDestino);
 
       if (userOrigem == null) {
-        response.status(400).json("Não existe usuário origem!");
+        response.status(400).json('Não existe usuário origem!');
       } else if (userDestino == null) {
-        response.status(400).json("Não existe usuário destino!");
+        response.status(400).json('Não existe usuário destino!');
       } else {
         const categoriaUsuarioOrigem = await Category.findById(
-          userOrigem.categoryId);
+          userOrigem.categoryId,
+        );
         if (valorTransferido > categoriaUsuarioOrigem.transactionLimit) {
           response
             .status(400)
-            .json("Limite máximo para realizar uma transferência foi ultrapassado!");
+            .json(
+              'Limite máximo para realizar uma transferência foi ultrapassado!',
+            );
         } else {
           const valorDescontadoComTaxa =
             valorTransferido +
@@ -128,7 +131,7 @@ class UserController {
             response
               .status(400)
               .json(
-                "Saldo insuficiente na conta para realizar a transferência!"
+                'Saldo insuficiente na conta para realizar a transferência!',
               );
           } else {
             const updateUsuarioOrigem = {
@@ -136,7 +139,7 @@ class UserController {
             };
             await User.findByIdAndUpdate(
               { _id: userOrigem._id },
-              updateUsuarioOrigem
+              updateUsuarioOrigem,
             );
             const saldoFinalComValorTransferido =
               valorTransferido + userDestino.currency;
@@ -145,9 +148,9 @@ class UserController {
             };
             await User.findByIdAndUpdate(
               { _id: userDestino._id },
-              updateUsuarioDestino
+              updateUsuarioDestino,
             );
-            response.status(200).json("Transferencia realizada com sucesso!");
+            response.status(200).json('Transferencia realizada com sucesso!');
           }
         }
       }
