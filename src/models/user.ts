@@ -6,6 +6,7 @@ const UserSchema = new Schema({
   age: { type: Number, required: true },
   income: { type: Number, required: true },
   currency: { type: Number, required: true },
+  categoryId: {type: String}
 });
 
 export default mongoose.model("User", UserSchema);
