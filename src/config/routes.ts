@@ -14,6 +14,6 @@ router.post("/users/saque", userController.saque);
 router.post("/users/transfer", userController.transfer);
 router.get("/category/find", categoryController.find);
 router.post("/category/add", categoryController.add);
-//router.post("/users/rendimento", userController.rendimento);
+router.post("/users/rendimento", userController.rendimento);
 
 export default router;
