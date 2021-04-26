@@ -5,7 +5,7 @@ const UserSchema = new Schema({
   cpf: { type: String, required: true },
   age: { type: Number, required: true },
   income: { type: Number, required: true },
-  currency: { type: Number, required: true },
+  currency: { type: Number},
   categoryId: { type: String },
 });
 
