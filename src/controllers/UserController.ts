@@ -195,39 +195,39 @@ class UserController {
     }
   }
 
-  //async rendimento (request: Request, response: Response)
-  //{
-   // const cpf = request.body.cpf;
-    //const filter = {cpf: cpf}
-   // const user = await User.findOne(filter);
-   // const saldoUsuario = user.currency;
-   // const rendimento = saldoUsuario + (saldoUsuario*0.5);
+  async rendimento (request: Request, response: Response)
+  {
+    const cpf = request.body.cpf;
+    const filter = {cpf: cpf}
+    const user = await User.findOne(filter);
+    const saldoUsuario = user.currency;
+    const rendimento = saldoUsuario + (saldoUsuario*0.5);
 
-  //  if (saldoUsuario < 0)
-  //  {
-   //   response 
-   //   .status(400)
-   //   .json ("Náo é possível obter rendimentos em uma conta zerada");
+    if (saldoUsuario < 0)
+    {
+      response 
+     .status(400)
+     .json ("Náo é possível obter rendimentos em uma conta zerada");
 
-  //  } else {
-   //   const filter = { cpf: cpf };
-   //   const update = { currency: rendimento};
-   //   const user = await User.findOneAndUpdate(filter, update);
+   } else {
+     const filter = { cpf: cpf };
+     const update = { currency: rendimento};
+     const user = await User.findOneAndUpdate(filter, update);
 
-    //  if (user == null) {
-     //   response
-     //     .status(400)
-     //     .json("Não existe nenhum usuário cadastrado no sistema");
-    //  } else {
-    //    response.status(200).json("Rendimento realizado com sucesso");
-    ///  }
+     if (user == null) {
+       response
+         .status(400)
+         .json("Não existe nenhum usuário cadastrado no sistema");
+     } else {
+       response.status(200).json("Rendimento realizado com sucesso");
+     }
 
-   // }
+   }
 
     
 
 
-  //}
+  }
 }
 
 export default UserController;
