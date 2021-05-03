@@ -19,8 +19,7 @@ class UserController {
         currency: request.body.currency,
       });
 
-      const filter = { cpf: newUser.cpf };
-      const user = await User.findOne(filter);
+      const user = await User.findOne({ cpf: newUser.cpf });
 
       if (user == null) {
         const categories = await Category.find(); // precisa ordenar pelo valor minimo da categoria (income)
@@ -206,9 +205,8 @@ class UserController {
         .status(400)
         .json('Náo é possível obter rendimentos em uma conta zerada');
     } else {
-      const filter = { cpf: cpf };
       const update = { currency: rendimento };
-      const user = await User.findOneAndUpdate(filter, update);
+      const user = await User.findOneAndUpdate({ cpf: cpf }, update);
 
       if (user == null) {
         response
