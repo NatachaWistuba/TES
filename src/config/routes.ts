@@ -6,14 +6,17 @@ const router = Router();
 const userController = new UserController();
 const categoryController = new CategoryController();
 
-router.get("/users/find", userController.find);
-router.post("/users/add", userController.add);
-router.post("/users/delete", userController.deleteUser);
-router.post("/users/deposit", userController.deposit);
-router.post("/users/saque", userController.saque);
-router.post("/users/transfer", userController.transfer);
-router.get("/category/find", categoryController.find);
-router.post("/category/add", categoryController.add);
-router.post("/users/rendimento", userController.rendimento);
+router.get('/users/find', userController.find);
+router.post('/users/add', userController.add);
+router.post('/users/delete', userController.deleteUser);
+router.post('/users/deposit', userController.deposit);
+router.post('/users/saque', userController.saque);
+router.post('/users/transfer', userController.transfer);
+router.post('/users/rendimento', userController.rendimento);
+
+router.post('/category/add', categoryController.add);
+router.get('/category/find', categoryController.find);
+router.delete('/category/delete', categoryController.delete);
+router.patch('/category/update', categoryController.update);
 
 export default router;

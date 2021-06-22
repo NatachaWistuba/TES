@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import User from '../models/user';
 import Category from '../models/category';
-import user from '../models/user';
+import parseNumber from '../helpers/parseNumber';
 
 class UserController {
   async find(request: Request, response: Response) {
@@ -19,8 +19,7 @@ class UserController {
         currency: request.body.currency,
       });
 
-      const filter = { cpf: newUser.cpf };
-      const user = await User.findOne(filter);
+      const user = await User.findOne({ cpf: newUser.cpf });
 
       if (user == null) {
         const categories = await Category.find(); // precisa ordenar pelo valor minimo da categoria (income)
@@ -53,38 +52,76 @@ class UserController {
 
   async deleteUser(request: Request, response: Response) {
     const cpf = request.body.cpf;
-    const filter = { cpf: cpf };
-    const user = await User.findOneAndDelete(filter);
+    const user = await User.findOneAndDelete({ cpf: cpf });
 
     if (user == null) {
       response
         .status(400)
-        .json("Não existe nenhum usuário com esse CPF para ser deletado");
+        .json('Não existe nenhum usuário com esse CPF para ser deletado');
     } else {
-      response.status(200).json("Usuário deletado com sucesso!");
+      response.status(200).json('Usuário deletado com sucesso!');
     }
   }
 
   async deposit(request: Request, response: Response) {
     try {
       const cpf = request.body.cpf;
-      const depositValue = request.body.currency;
+      const depositValue = parseNumber(request.body.currency);
 
-      if (depositValue <= 0) {
+      const findUser = await User.findOne({ cpf: cpf });
+
+      if (!findUser) {
+        return response
+          .status(400)
+          .json('O CPF informado não pertence a nenhum usuário.');
+      }
+
+      const updatedUser = await User.findOneAndUpdate(
+        { cpf: cpf },
+        {
+          currency: depositValue + parseInt(findUser.currency, 10),
+        },
+      );
+
+      if (updatedUser == null) {
+        return response
+          .status(400)
+          .json('Não existe nenhum usuário cadastrado no sistema');
+      } else {
+        return response.status(200).json(await User.findOne({ cpf: cpf }));
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async saque(request: Request, response: Response) {
+    try {
+      const cpf = request.body.cpf;
+      const valorDeSaque = parseNumber(request.body.currency);
+      const user = await User.findOne({ cpf: cpf });
+      const saldoUsuario = user.currency;
+
+      const saldoExtraido = saldoUsuario - valorDeSaque;
+
+      if (valorDeSaque <= 0) {
+        response.status(400).json('Não é possível sacar um valor negativo!');
+      } else if (saldoExtraido < 0) {
         response
           .status(400)
-          .json('Não é possível depositar um valor negativo!');
+          .json('Saldo insuficiente em conta para reailzar o saque!');
       } else {
-        const filter = { cpf: cpf };
-        const update = { currency: depositValue };
-        const user = await User.findOneAndUpdate(filter, update);
+        const user = await User.findOneAndUpdate(
+          { cpf: cpf },
+          { currency: saldoExtraido },
+        );
 
         if (user == null) {
           response
             .status(400)
             .json('Não existe nenhum usuário cadastrado no sistema');
         } else {
-          response.status(200).json('Depósito realizado com sucesso');
+          response.status(200).json('Saque realizado com sucesso');
         }
       }
     } catch (err) {
@@ -92,58 +129,18 @@ class UserController {
     }
   }
 
-  async saque(request:Request, response: Response) {
-    try {
-      const cpf = request.body.cpf;
-      const valorDeSaque = request.body.currency;
-      const filter = {cpf: cpf}
-      const user = await User.findOne(filter);
-      const saldoUsuario = user.currency;
-
-      const saldoExtraido = saldoUsuario - valorDeSaque;
-
-      if(valorDeSaque <= 0){
-        response
-          .status(400)
-          .json("Não é possível sacar um valor negativo!");
-      } else if (saldoExtraido < 0) {
-        response
-        .status(400)
-        .json("Saldo insuficiente em conta para reailzar o saque!");
-      } else{
-        const filter = {cpf: cpf};
-        const update = {currency: saldoExtraido};
-        const user = await User.findOneAndUpdate(filter, update);
-        
-        if (user == null) {
-          response
-            .status(400)
-            .json("Não existe nenhum usuário cadastrado no sistema");
-        } else {
-          response.status(200).json("Saque realizado com sucesso");
-        }
-
-      }
-
-    } catch(err) {
-      console.log(err);
-    }
-  }
-
   async transfer(request: Request, response: Response) {
     const cpfOrigem = request.body.cpfOrigem;
     const cpfDestino = request.body.cpfDestino;
-    const valorTransferido = request.body.valorTransferido;
+    const valorTransferido = parseNumber(request.body.valorTransferido);
 
     if (valorTransferido <= 0) {
       response
         .status(400)
         .json('O valor  de transferência precisa ser maior do que R$0.00!');
     } else {
-      const filterCpfOrigem = { cpf: cpfOrigem };
-      const filterCpfDestino = { cpf: cpfDestino };
-      const userOrigem = await User.findOne(filterCpfOrigem);
-      const userDestino = await User.findOne(filterCpfDestino);
+      const userOrigem = await User.findOne({ cpf: cpfOrigem });
+      const userDestino = await User.findOne({ cpf: cpfDestino });
 
       if (userOrigem == null) {
         response.status(400).json('Não existe usuário origem!');
@@ -166,7 +163,7 @@ class UserController {
           const saldoDescontadoComTaxaDoUsuarioOrigem =
             userOrigem.currency - valorDescontadoComTaxa;
           if (saldoDescontadoComTaxaDoUsuarioOrigem < 0) {
-            response
+            return response
               .status(400)
               .json(
                 'Saldo insuficiente na conta para realizar a transferência!',
@@ -188,45 +185,37 @@ class UserController {
               { _id: userDestino._id },
               updateUsuarioDestino,
             );
-            response.status(200).json('Transferencia realizada com sucesso!');
+            return response
+              .status(200)
+              .json('Transferencia realizada com sucesso!');
           }
         }
       }
     }
   }
 
-  async rendimento (request: Request, response: Response)
-  {
+  async rendimento(request: Request, response: Response) {
     const cpf = request.body.cpf;
-    const filter = {cpf: cpf}
-    const user = await User.findOne(filter);
+    const user = await User.findOne({ cpf: cpf });
     const saldoUsuario = user.currency;
-    const rendimento = saldoUsuario + (saldoUsuario*0.5);
+    const rendimento = saldoUsuario + saldoUsuario * 0.5;
 
-    if (saldoUsuario < 0)
-    {
-      response 
-     .status(400)
-     .json ("Náo é possível obter rendimentos em uma conta zerada");
+    if (saldoUsuario < 0) {
+      response
+        .status(400)
+        .json('Náo é possível obter rendimentos em uma conta zerada');
+    } else {
+      const update = { currency: rendimento };
+      const user = await User.findOneAndUpdate({ cpf: cpf }, update);
 
-   } else {
-     const filter = { cpf: cpf };
-     const update = { currency: rendimento};
-     const user = await User.findOneAndUpdate(filter, update);
-
-     if (user == null) {
-       response
-         .status(400)
-         .json("Não existe nenhum usuário cadastrado no sistema");
-     } else {
-       response.status(200).json("Rendimento realizado com sucesso");
-     }
-
-   }
-
-    
-
-
+      if (user == null) {
+        response
+          .status(400)
+          .json('Não existe nenhum usuário cadastrado no sistema');
+      } else {
+        response.status(200).json('Rendimento realizado com sucesso');
+      }
+    }
   }
 }
 
